@@ -141,15 +141,18 @@ def check_sigstore_links(links):
 
 def show_sigstore_provenance(attestation):
     """Extract and display Sigstore provenance links from attestation."""
+    print("here is the attestation info:")
     tcb_info = attestation.get("info", {}).get("tcb_info", {})
     if isinstance(tcb_info, str):
         tcb_info = json.loads(tcb_info)
     compose = tcb_info.get("app_compose")
     if not compose:
+        print("\nNo app_compose found in attestation, skipping Sigstore provenance check.")
         return
 
     sigstore_links = extract_sigstore_links(compose)
     if not sigstore_links:
+        print("\nNo container image digests found in compose, skipping Sigstore provenance check.")
         return
 
     print("\n🔐 Sigstore provenance")

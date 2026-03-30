@@ -10,6 +10,7 @@ from hashlib import sha256
 import requests
 from eth_account import Account
 from eth_account.messages import encode_defunct
+from dotenv import load_dotenv
 
 from attestation_verifier import (
     check_report_data,
@@ -17,6 +18,8 @@ from attestation_verifier import (
     check_tdx_quote,
     show_sigstore_provenance,
 )
+
+load_dotenv()
 
 API_KEY = os.environ.get("API_KEY", "")
 BASE_URL = "https://api.redpill.ai"
@@ -123,11 +126,14 @@ def streaming_example(model):
 def non_streaming_example(model):
     body = {
         "model": model,
-        "messages": [{"role": "user", "content": "Hello, how are you?"}],
+        "messages": [{"role": "user", "content": "Hello, what is the capital of France?"}],
         "stream": False,
-        "max_tokens": 1,
+        "max_tokens": 1000,
     }
     body_json = json.dumps(body)
+    print("====== Sending non-streaming request...")
+    print(json.dumps(body, indent=2))
+
     response = requests.post(
         f"{BASE_URL}/v1/chat/completions",
         headers={"Content-Type": "application/json", "Authorization": f"Bearer {API_KEY}"},
@@ -136,21 +142,25 @@ def non_streaming_example(model):
     )
 
     payload = response.json()
+    print("====== API response:")
+    print(json.dumps(payload, indent=2))
+
     chat_id = payload["id"]
+
     verify_chat(chat_id, body_json, response.text, "Non-streaming example", model)
 
 
 def main():
     """Run example verification of streaming and non-streaming chat completions."""
     parser = argparse.ArgumentParser(description="Verify Signed Chat Responses")
-    parser.add_argument("--model", default="phala/deepseek-chat-v3-0324")
+    parser.add_argument("--model", default="phala/qwen3-vl-30b-a3b-instruct")
     args = parser.parse_args()
 
     if not API_KEY:
         print("Error: API_KEY environment variable is required")
         print("Set it with: export API_KEY=your-api-key")
         return
-    streaming_example(args.model)
+    # streaming_example(args.model)
     non_streaming_example(args.model)
 
 
